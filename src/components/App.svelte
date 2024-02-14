@@ -4,7 +4,16 @@
     import CalFire from './CalFire.svelte';
     import calfire_clean from '../data/calfire_clean.json';
     
-    
+    let tempData = [];
+
+    onMount(async () => {
+      const res = await fetch('calfire.csv'); 
+      const csv = await res.text();
+      tempData = d3.csvParse(csv, d3.autoType)
+      console.log(tempData);
+    });
+
+
 </script>
 
 <main>

@@ -3,8 +3,6 @@
     import { onMount } from 'svelte';
     import { createEventDispatcher } from 'svelte';
 
-    export let calfire_clean;
-
     const width = 900;
     const height = 500;
     const marginTop = 10;
@@ -25,6 +23,8 @@
 
     let svg;
     let marker_container;
+
+    
 
     function create_markers(fire_data) {
         marker_container = d3.select(svg)
@@ -68,16 +68,19 @@
         
         let xScale = d3.scaleLinear()
             .domain(d3.extent(fireData, d => d.Longitude))
-            .range([0, width]);
+            .range([marginLeft, width - marginRight]);
         let yScale = d3.scaleLinear()
                 .domain(d3.extent(fireData, d => d.Latitude))
-                .range([height, 0]);
+                .range([height - marginBottom, marginTop]);
         
         create_markers(fireData);
         position_markers(xScale, yScale);
         console.log(fireData)
     });
+
 </script>
+
+
 
 <svg
     bind:this={svg}
@@ -85,6 +88,7 @@
     width={width + marginLeft + marginRight}
     height={height + marginTop + marginBottom}
 >
+
     <g transform={`translate(${marginLeft},${marginTop})`}>
         <g class="grid x-grid" id="xGrid" transform={`translate(0,${height})`}></g>
         <g class="grid y-grid" id="yGrid"></g>
@@ -92,4 +96,7 @@
         <g class="y-axis" id="yAxis"></g>
         <g id="marker_container"></g>
     </g>
+
+    
+
 </svg>

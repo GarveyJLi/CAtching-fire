@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import * as d3 from 'd3';
     import CalFire from './CalFire.svelte';
-    import calfire_clean from '../../static/calfire_clean.json';
+    import calfire_clean from '../data/calfire_clean.json';
     
     
 </script>

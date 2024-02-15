@@ -18,7 +18,9 @@
 <main>
     <h1>CAtching Fire</h1>
     <h3>California wildfires</h3>
-    <CalFire {tempData} />
+    <div>
+      <CalFire {tempData} />
+    </div>
 </main>
 
 <style>
@@ -42,14 +44,17 @@
     color: var(--color-text);
   }
   h1 {
-    font-size: 2em;
+    font-size: 1em;
     font-weight: 300;
     line-height: 2;
   }
   h3 {
-    font-size:1em;
+    font-size:0.5em;
     font-weight: 250;
     line-height: 1.5;
+  }
+  div {
+    margin-top: 20px;
   }
 
 </style>

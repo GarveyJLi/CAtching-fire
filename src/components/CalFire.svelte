@@ -6,10 +6,10 @@
 
     const width = 900;
     const height = 500;
-    const marginTop = 10;
-    const marginRight = 10;
-    const marginBottom = 10;
-    const marginLeft = 10;
+    const marginTop = 20;
+    const marginRight = 20;
+    const marginBottom = 20;
+    const marginLeft = 20;
 
     let gx;
     let gy;
@@ -22,7 +22,7 @@
     $: x=d3
     .scaleLinear() 
     .domain(d3.extent(tempData, (d) => d.Longitude)) 
-    .range([marginLeft * 20, width - marginRight * 20])
+    .range([marginLeft * 10, width - marginRight * 10])
 
     $: y=d3
     .scaleLinear()
@@ -32,8 +32,6 @@
     $: d3.select(gx).call(d3.axisBottom(x));
 
     $: d3.select(gy).call(d3.axisLeft(y));
-
-    
 </script>
 
 
@@ -50,25 +48,23 @@
         <g bind:this={gx} transform="translate(0, {height - marginBottom})"/>
 
         <!--y axis-->
-        <g bind:this={gy} transform="translate({marginLeft + 40}, 0)"/>
+        <g bind:this={gy} transform="translate({marginLeft}, 0)"/>
 
         <g stroke="#000" stroke-opacity="0.2">
             {#each tempData as d, i}
-              <circle key={i} cx={x(d.Longitude)} cy={y(d.Latitude)} fill='red' r="2.5"/>
+              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+              <!-- svelte-ignore a11y-no-static-element-interactions -->
+              <circle 
+                key={i} 
+                cx={x(d.Longitude)} 
+                cy={y(d.Latitude)} 
+                fill='red' 
+                r="2.5"               
+                on:mouseover={() => console.log('Hover')}
+                on:mouseout={() => console.log('CYA')}
+              />
             {/each}
-        </g>
-
-        
-        <g transform={`translate(${marginLeft} ,${marginTop})`}>
-            <g class="grid x-grid" id="xGrid" transform={`translate(0,${height})`}></g>
-            <g class="grid y-grid" id="yGrid"></g>
-            <g class="x-axis" id="xAxis"></g>
-            <g class="y-axis" id="yAxis"></g>
-            <g id="marker_container"></g>
-        </g>
-        
-
-        
+        </g>        
 
     </svg>
 </div>

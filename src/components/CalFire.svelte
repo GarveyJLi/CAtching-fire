@@ -5,7 +5,7 @@
     export let tempData;
 
     const width = 650;
-    const height = 500;
+    const height = 550;
     const marginTop = 20;
     const marginRight = 80;
     const marginBottom = 40; // Increased to accommodate axis labels
@@ -19,7 +19,22 @@
     let circle_markers;
     let x;
     let y;
+
     let tooltipText = '';
+    let tooltipInfo;
+    let acresBurned = '';
+    let fatalities = '';
+    let long = '';
+    let lat = '';
+
+    // Define a linear scale for the radius based on AcresBurned
+    let radiusScale = d3.scaleLinear()
+        .domain(d3.extent(tempData, d => d.AcresBurned))
+        .range([3, 11]); // Adjust the range as needed for the desired circle sizes
+    // Define a color scale based on AcresBurned
+    let colorScale = d3.scaleSequential(d3.interpolateHslLong)
+        .domain(d3.extent(tempData, d => d.AcresBurned))
+        .range(["#edca00", "#de1102"]);
 
     // Set the zoom and Pan features: how much you can zoom, on which part, and what to do when there is a zoom
     const zoom = d3.zoom()
@@ -96,16 +111,7 @@
             .attr('text-anchor', 'middle')
             .text('');
             
-        // Mousemove event to update tooltip position
-        svg.on("mousemove", (event) => {
-            if (tooltipText) {
-                const [xPos, yPos] = d3.pointer(event);
-                marker_container.attr("transform", `translate(${xPos + 10}, ${yPos + 10})`);
-                marker_container.style('display', 'block');
-            } else {
-                marker_container.style('display', 'none');
-            }
-        });
+        
     });
 
     afterUpdate(() => {
@@ -133,21 +139,33 @@
         circle_markers = svg.selectAll("circle")
             .data(tempData)
             .attr("cx", (d) => x(d.Longitude))
-            .attr("cy", (d) => y(d.Latitude));
+            .attr("cy", (d) => y(d.Latitude))
+            .attr("r", (d) => radiusScale(d.AcresBurned)); // Use the radius scale
 
         // Enter new circles
         circle_markers.enter()
             .append("circle")
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("r", 2.5)
-            .attr("fill", 'red')
-            .on("mouseover", (d) => {
-                tooltipText = `Longitude: ${d.Longitude}, Latitude: ${d.Latitude}`;
+            .attr("r", (d) => radiusScale(d.AcresBurned)) // Use the radius scale
+            .attr("fill", (d) => colorScale(d.AcresBurned))
+            .attr("opacity", 0.5)
+            .on("mouseover", (event, d) => {
+                tooltipText = `Longitude: ${d.Longitude} Latitude: ${d.Latitude}`;
+                tooltipInfo = d;
+                acresBurned = d.AcresBurned;
+                fatalities = d.Fatalities;
+                long = d.Longitude;
+                lat = d.Latitude;
                 marker_container.select('text').text(tooltipText);
             })
             .on("mouseout", () => {
                 tooltipText = '';
+                tooltipInfo = '';
+                acresBurned = '';
+                fatalities = '';
+                long = '';
+                lat = '';
                 marker_container.select('text').text(tooltipText);
             });
             
@@ -159,9 +177,17 @@
 <div id = "wrapper">
     <div class="fire-plot" id="dataviz_axisZoom" style="overflow: auto; height: ${1000}px;"></div>
 
-    <div id = "div2">
-        hello
+
+    <div id="div2">
+        <p align = 'left'>
+        Longitude: {long} <br />
+        Latitude: {lat} <br />
+        Acres Burned: {acresBurned} <br />
+        Fatalities: {fatalities} <br />
+        </p>
     </div>
+
+
 </div>
 
 <style>
@@ -180,6 +206,11 @@
         width:260px;
         height:200px;
         border: 1px solid green;
+        font-size:0.5em;
+    }
+
+    p {
+    margin: 35px;
     }
 
 </style>

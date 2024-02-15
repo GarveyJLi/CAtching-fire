@@ -2,6 +2,7 @@
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
     import { createEventDispatcher } from 'svelte';
+    export let tempData;
 
     const width = 900;
     const height = 500;
@@ -12,91 +13,62 @@
 
     let gx;
     let gy;
-
-    let fireData = [];
-
-    let fire_data = [];
+    let svg;
+    let marker_container;
     let circle_markers;
-    let trip_data = [];
 
     const dispatch = createEventDispatcher();
 
-    let svg;
-    let marker_container;
+    $: x=d3
+    .scaleLinear() 
+    .domain(d3.extent(tempData, (d) => d.Longitude)) 
+    .range([marginLeft * 20, width - marginRight * 20])
+
+    $: y=d3
+    .scaleLinear()
+    .domain(d3.extent(tempData, (d) => d.Latitude))
+    .range([height - marginBottom, marginTop])
+
+    $: d3.select(gx).call(d3.axisBottom(x));
+
+    $: d3.select(gy).call(d3.axisLeft(y));
 
     
-
-    function create_markers(fire_data) {
-        marker_container = d3.select(svg)
-            .append('g')
-            .attr('id', 'marker_container');
-
-        circle_markers = marker_container
-            .selectAll("circle")
-            .data(fire_data)
-            .enter()
-            .append("circle")
-            .attr("r", 5)
-            .style("fill", "#808080")
-            .attr("stroke", "#808080")
-            .attr("stroke-width", 1)
-            .attr("fill-opacity", 0.4)
-    }
-
-    function position_markers(xScale, yScale) {
-		circle_markers
-			.attr("cx", function (d) {
-				return project_x(xScale, d);
-			})
-			.attr("cy", function (d) {
-				return project_y(yScale, d);
-			});
-	}
-
-    function project_x(xScale, d) {
-        return xScale(d.Longitude) + marginLeft;
-    }
-
-    function project_y(yScale, d) {
-        return yScale(d.Latitude) + marginTop;
-    }
-
-    onMount(async () => {
-        const res = await fetch('calfire.csv');
-        const csv = await res.text();
-        fireData = d3.csvParse(csv, d3.autoType);
-        
-        let xScale = d3.scaleLinear()
-            .domain(d3.extent(fireData, d => d.Longitude))
-            .range([marginLeft, width - marginRight]);
-        let yScale = d3.scaleLinear()
-                .domain(d3.extent(fireData, d => d.Latitude))
-                .range([height - marginBottom, marginTop]);
-        
-        create_markers(fireData);
-        position_markers(xScale, yScale);
-        console.log(fireData)
-    });
-
 </script>
 
 
+<div class="fire-plot">
+    <svg
+        bind:this={svg}
+        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+        width={width + marginLeft + marginRight}
+        height={height + marginTop + marginBottom}
+    >
 
-<svg
-    bind:this={svg}
-    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"
-    width={width + marginLeft + marginRight}
-    height={height + marginTop + marginBottom}
->
 
-    <g transform={`translate(${marginLeft},${marginTop})`}>
-        <g class="grid x-grid" id="xGrid" transform={`translate(0,${height})`}></g>
-        <g class="grid y-grid" id="yGrid"></g>
-        <g class="x-axis" id="xAxis"></g>
-        <g class="y-axis" id="yAxis"></g>
-        <g id="marker_container"></g>
-    </g>
+        <!--x axis-->
+        <g bind:this={gx} transform="translate(0, {height - marginBottom})"/>
 
-    
+        <!--y axis-->
+        <g bind:this={gy} transform="translate({marginLeft + 40}, 0)"/>
 
-</svg>
+        <g stroke="#000" stroke-opacity="0.2">
+            {#each tempData as d, i}
+              <circle key={i} cx={x(d.Longitude)} cy={y(d.Latitude)} fill='red' r="2.5"/>
+            {/each}
+        </g>
+
+        
+        <g transform={`translate(${marginLeft} ,${marginTop})`}>
+            <g class="grid x-grid" id="xGrid" transform={`translate(0,${height})`}></g>
+            <g class="grid y-grid" id="yGrid"></g>
+            <g class="x-axis" id="xAxis"></g>
+            <g class="y-axis" id="yAxis"></g>
+            <g id="marker_container"></g>
+        </g>
+        
+
+        
+
+    </svg>
+</div>

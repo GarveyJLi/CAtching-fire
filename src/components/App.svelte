@@ -2,15 +2,23 @@
     import { onMount } from 'svelte';
     import * as d3 from 'd3';
     import CalFire from './CalFire.svelte';
-    import calfire_clean from '../data/calfire_clean.json';
     
-    
+    let tempData = [];
+
+    onMount(async () => {
+      const res = await fetch('calfire.csv'); 
+      const csv = await res.text();
+      tempData = d3.csvParse(csv, d3.autoType)
+      console.log(tempData);
+    });
+
+
 </script>
 
 <main>
     <h1>CAtching Fire</h1>
     <h3>California wildfires</h3>
-    <CalFire {calfire_clean} />
+    <CalFire {tempData} />
 </main>
 
 <style>

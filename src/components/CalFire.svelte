@@ -20,8 +20,27 @@
     let x;
     let y;
 
-    let tooltipText = '';
-    let tooltipInfo;
+
+    function handleMouseOver(event,d){
+        acresBurned = d.AcresBurned;
+        fatalities = d.Fatalities;
+        long = d.Longitude;
+        lat = d.Latitude;
+        year = d.ArchiveYear;
+        county = d.Counties;
+        name = d.Name;
+        description = d.SearchDescription;
+
+        // Highlight the element
+        d3.select(this).attr("fill", "blue");
+    }
+    
+    const acreBurned_quantiles = [0, 35, 98, 422.5, 410203]
+    const color_quantiles = ["#FFD94F", "#FAAE3B" , "#F58228" , "#F05714" , "#EB2B00" ]
+    let colorScale2 = d3.scaleThreshold(d3.interpolateHslLong)
+        .domain(acreBurned_quantiles)
+        .range(color_quantiles);
+    
     let acresBurned = '';
     let fatalities = '';
     let year = '';
@@ -112,7 +131,7 @@
             .data(tempData)
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("fill", (d) => colorScale(d.AcresBurned))
+            .style("fill", (d) => colorScale2(d.AcresBurned))
             .attr("r", (d) => radiusScale(d.AcresBurned)); 
 
         // Enter new circles
@@ -121,11 +140,11 @@
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
             .attr("r", (d) => radiusScale(d.AcresBurned))
-            .attr("fill", (d) => colorScale(d.AcresBurned))
+            .style("fill", (d) => colorScale2(d.AcresBurned))
             .attr("opacity", 0.6)
-            .on("mouseover", (event, d) => {
-                tooltipText = `Longitude: ${d.Longitude} Latitude: ${d.Latitude}`;
-                tooltipInfo = d;
+
+            .on("mouseover", function(event, d) {
+                // Update tooltip content
                 acresBurned = d.AcresBurned;
                 fatalities = d.Fatalities;
                 long = d.Longitude;
@@ -134,10 +153,13 @@
                 county = d.Counties;
                 name = d.Name;
                 description = d.SearchDescription;
+
+                // Highlight the element
+                d3.select(this).style("fill", "blue");
+                console.log("mouse over")
             })
+
             .on("mouseout", () => {
-                tooltipText = '';
-                tooltipInfo = '';
                 acresBurned = '';
                 fatalities = '';
                 long = '';
@@ -227,7 +249,8 @@
         display: inline-block;
         background: #ffe1a3;
         border-radius: 8px;
-        height: 400px;
+        min-height: 400px;
+        height: auto;
         width: 100%;
     }
     #div-b {

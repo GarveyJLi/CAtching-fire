@@ -20,26 +20,46 @@
     let x;
     let y;
 
-    let tooltipText = '';
-    let tooltipInfo;
+
+    function handleMouseOver(event,d){
+        acresBurned = d.AcresBurned;
+        fatalities = d.Fatalities;
+        long = d.Longitude;
+        lat = d.Latitude;
+        year = d.ArchiveYear;
+        county = d.Counties;
+        name = d.Name;
+        description = d.SearchDescription;
+
+        // Highlight the element
+        d3.select(this).attr("fill", "blue");
+    }
+    
+    const acreBurned_quantiles = [0, 35, 98, 422.5, 410203]
+    const color_quantiles = ["#FFD94F", "#FAAE3B" , "#F58228" , "#F05714" , "#EB2B00" ]
+    let colorScale2 = d3.scaleThreshold(d3.interpolateHslLong)
+        .domain(acreBurned_quantiles)
+        .range(color_quantiles);
+    
     let acresBurned = '';
     let fatalities = '';
+    let year = '';
+    let description = '';
+    let name = '';
     let long = '';
     let lat = '';
+    let county = '';
     let zoom = d3.zoom()
         .on('zoom', handleZoom);
 
     // Define a linear scale for the radius based on AcresBurned
     let radiusScale = d3.scaleLinear()
-        .domain(d3.extent(tempData, d => d.AcresBurned))
-        .range([3, 11]); // Adjust the range as needed for the desired circle sizes
+        .domain([0, 410203])
+        .range([4, 15]); // Adjust the range as needed for the desired circle sizes
     // Define a color scale based on AcresBurned
-    let colorScale = d3.scaleSequential(d3.interpolateHslLong)
-        .domain(d3.extent(tempData, d => d.AcresBurned))
-        .range(["#edca00", "#de1102"]);
-
-
-        
+    let colorScale = d3.scaleLinear(d3.interpolateHslLong)
+        .domain([0, 410203])
+        .range(["#ffa826", "#de1102"]);
 
     onMount(() => {
         // Append the SVG object to the body of the page
@@ -60,8 +80,8 @@
             .attr("y", marginTop);
 
         // Create the scatter variable: where both the circles and the brush take place
-        const scatter = svg.append('g')
-            .attr("clip-path", "url(#clip)");
+        //const scatter = svg.append('g')
+        //    .attr("clip-path", "url(#clip)");
 
         // Append the x axis
         gx = svg.append("g")
@@ -78,21 +98,7 @@
             .style("fill", "none")
             .style("pointer-events", "all")
             .call(zoom);
-            
-        // Append the marker container (tooltip rectangle and text)
-        marker_container = svg.append('g')
-            .attr('class', 'marker-container')
-            .attr('transform', `translate(${width - marginRight - 100}, ${marginTop})`)
-            .style('display', 'none'); // Hide initially
 
- 
-        marker_container.append('text')
-            .attr('x', 50)
-            .attr('y', 15)
-            .attr('text-anchor', 'middle')
-            .text('');
-            
-        
     });
 
     function handleZoom(e) {
@@ -125,35 +131,45 @@
             .data(tempData)
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("r", 5); // Use the radius scale
+            .style("fill", (d) => colorScale2(d.AcresBurned))
+            .attr("r", (d) => radiusScale(d.AcresBurned)); 
 
         // Enter new circles
         circle_markers.enter()
             .append("circle")
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("r", 5) // Use the radius scale
-            .attr("fill", 'red')
-            .attr("opacity", 0.5)
-            .on("mouseover", (event, d) => {
-                tooltipText = `Longitude: ${d.Longitude} Latitude: ${d.Latitude}`;
-                tooltipInfo = d;
+            .attr("r", (d) => radiusScale(d.AcresBurned))
+            .style("fill", (d) => colorScale2(d.AcresBurned))
+            .attr("opacity", 0.6)
+
+            .on("mouseover", function(event, d) {
+                // Update tooltip content
                 acresBurned = d.AcresBurned;
                 fatalities = d.Fatalities;
                 long = d.Longitude;
                 lat = d.Latitude;
-                marker_container.select('text').text(tooltipText);
+                year = d.ArchiveYear;
+                county = d.Counties;
+                name = d.Name;
+                description = d.SearchDescription;
+
+                // Highlight the element
+                d3.select(this).style("fill", "blue");
+                console.log("mouse over")
             })
+
             .on("mouseout", () => {
-                tooltipText = '';
-                tooltipInfo = '';
                 acresBurned = '';
                 fatalities = '';
                 long = '';
                 lat = '';
-                marker_container.select('text').text(tooltipText);
+                year= '';
+                county = '';
+                name = '';
+                description= '';
+
             });
-            
         // Remove old circles
         circle_markers.exit().remove();
     });
@@ -161,41 +177,102 @@
 
 <div id = "wrapper">
     <div class="fire-plot" id="dataviz_axisZoom" style="overflow: auto; height: ${1000}px;"></div>
-
-
     <div id="div2">
-        <p align = 'left'>
-        Longitude: {long} <br />
-        Latitude: {lat} <br />
-        Acres Burned: {acresBurned} <br />
-        Fatalities: {fatalities} <br />
-        </p>
+        <div id = "div-a">
+            <div id = "items" align = 'left'>
+                <span id = 'item'> Name:   </span> {name} <br />
+                <p></p>
+                <span id = 'item'> Longitude:   </span> {long} <br />
+                <p></p>
+                <span id = 'item'> Latitude:    </span> {lat} <br />
+                <p></p>
+                <span id = 'item'> County:     </span> {county} <br />
+                <p></p>
+                <span id = 'item'> Acres Burned:  </span> {acresBurned} <br />
+                <p></p>
+                <span id = 'item'> Fatalities:  </span> {fatalities} <br />
+                <p></p>
+                <span id = 'item'> Year:     </span> {year} <br />
+                <p></p>
+                <span id = 'item'> Description:     </span> {description} 
+
+            </div>
+        </div>
+        <br />
+        <p></p>
+        <div id = "div-b">
+            <div id = "items" align = 'left'>
+                <span id = 'item-b'> About the Data: </span> <br />
+                <p></p>
+                <p>The data in this visualization is a collection of California wildfires spanning from 2013 to 2019. The dataset was sourced from CalFire – California Department of Forest and Fire Protection.</p>
+                <p>You can scroll and zoom in to better see the different wildfires in California. You can also hover over a particular circle to learn more about its corresponding wildfire.</p>
+            </div>
+        </div>
+
     </div>
-
-
 </div>
 
 <style>
+
     #wrapper {
-        border: 1px solid blue;
+        border: 0px solid blue;
     }
     #dataviz_axisZoom {
         display: inline-block;
-        width:650;
-        height:500;
+        width:55%;
+        height:400;
         border: 1px solid red;
     }
     #div2 {
         vertical-align:top;
         display: inline-block;
-        width:260px;
-        height:200px;
-        border: 1px solid green;
-        font-size:0.5em;
+        width: 25%;
+        font-size:0.605em;
+        text-align: left; /* Align content to the left */
+    }
+    #items {
+        margin: 20px;
+    }
+    #item {
+        background: #d95e00;
+        border-radius: 5px;
+        padding-top: 5px;
+        padding-right: 5px;
+        padding-bottom: 5px;
+        padding-left: 5px;
+        color:white;
+        font-weight: bold;
     }
 
-    p {
-    margin: 35px;
+    #div-a {
+        vertical-align:top;
+        display: inline-block;
+        background: #ffe1a3;
+        border-radius: 8px;
+        min-height: 400px;
+        height: auto;
+        width: 100%;
     }
+    #div-b {
+        vertical-align:top;
+        display: inline-block;
+        background: #f0f0f0;
+        border-radius: 8px;
+        width: 100%;
+        height: auto;
+    }
+    #item-b {
+        background: #ffc445;
+        border-radius: 5px;
+        padding-top: 5px;
+        padding-right: 5px;
+        padding-bottom: 5px;
+        padding-left: 5px;
+        color:white;
+        font-weight: bold;
+    }
+    
+
+
 
 </style>

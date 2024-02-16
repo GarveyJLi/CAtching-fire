@@ -16,45 +16,62 @@
 </script>
 
 <main>
-    <h1>CAtching Fire</h1>
-    <h3>California wildfires</h3>
-    <div>
-      <CalFire {tempData} />
+  <div class = "heading">
+    <div class="header-background">
+      <header>
+        <span><h1>CA-tching Fire</h1></span>
+        <span><h3>Penny King & Garvey Li</h3></span>
+      </header>
+    
     </div>
+    <p></p>
+    
+  </div>
+  <div>
+    <CalFire {tempData} />
+  </div>
 </main>
 
 <style>
-    :rppt {
-        --color-bg: #ffffff;
 
-    }
-  *,
-  *::before,
-  *::after {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+
+  .header-background {
+    margin-inline: auto;
+    top: 0;
+    align-items: center;
+
+    width: 80%;
+    height: 100px;
+    max-width: 1200px;
+    color: #fcfcfc;
+    background: linear-gradient(to left, #FEC44F, #cf1702);
+    border-radius: 12px; /* Adjust the border-radius for rounded corners */
   }
+
   main {
     text-align: center;
     font-family: 'Nunito', sans-serif;
     font-weight: 300;
     line-height: 2;
-    font-size: 24px;
+    font-size: 20px;
     color: var(--color-text);
   }
-  h1 {
-    font-size: 1em;
-    font-weight: 300;
-    line-height: 2;
-  }
-  h3 {
-    font-size:0.5em;
-    font-weight: 250;
-    line-height: 1.5;
-  }
-  div {
-    margin-top: 20px;
-  }
 
+  header h1 {
+    font-size: 50px;
+    font-weight: 600;
+    color: #fcfcfc;
+    padding: 10px;
+    text-align: left;
+    width: 100%;
+    margin-left:15px;
+  }
+  header h3 {
+    font-size: 20px;
+    font-weight: 250;
+    color: white;
+    transform: translateY(-255%);
+    text-align: right;
+    margin-right: 30px;
+  }
 </style>

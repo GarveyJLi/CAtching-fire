@@ -24,6 +24,7 @@
     let tooltipInfo;
     let acresBurned = '';
     let fatalities = '';
+    let year = '';
     let long = '';
     let lat = '';
     let zoom = d3.zoom()
@@ -38,8 +39,6 @@
         .domain(d3.extent(tempData, d => d.AcresBurned))
         .range(["#edca00", "#de1102"]);
 
-
-        
 
     onMount(() => {
         // Append the SVG object to the body of the page
@@ -142,6 +141,7 @@
                 fatalities = d.Fatalities;
                 long = d.Longitude;
                 lat = d.Latitude;
+                year = d.ArchiveYear;
                 marker_container.select('text').text(tooltipText);
             })
             .on("mouseout", () => {
@@ -151,6 +151,7 @@
                 fatalities = '';
                 long = '';
                 lat = '';
+                year= '';
                 marker_container.select('text').text(tooltipText);
             });
             
@@ -161,41 +162,92 @@
 
 <div id = "wrapper">
     <div class="fire-plot" id="dataviz_axisZoom" style="overflow: auto; height: ${1000}px;"></div>
-
-
     <div id="div2">
-        <p align = 'left'>
-        Longitude: {long} <br />
-        Latitude: {lat} <br />
-        Acres Burned: {acresBurned} <br />
-        Fatalities: {fatalities} <br />
-        </p>
+        <div id = "div-a">
+            <div id = "items" align = 'left'>
+                <span id = 'item'> Longitude:   </span> {long} <br />
+                <p></p>
+                <span id = 'item'> Latitude:    </span> {lat} <br />
+                <p></p>
+                <span id = 'item'> Acres Burned:  </span> {acresBurned} <br />
+                <p></p>
+                <span id = 'item'> Fatalities:  </span> {fatalities} <br />
+                <p></p>
+                <span id = 'item'> Year:     </span> {year} <br />
+            </div>
+        </div>
+        <br />
+        <p></p>
+        <div id = "div-b">
+            <div id = "items" align = 'left'>
+                <span id = 'item-b'> About the Data: </span> <br />
+                <p></p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lectus sit amet est placerat in egestas erat imperdiet. Ullamcorper eget nulla facilisi etiam dignissim diam quis. Magna eget est lorem ipsum dolor sit amet. Neque volutpat ac tincidunt.</p>
+            </div>
+        </div>
+
     </div>
-
-
 </div>
 
 <style>
+
     #wrapper {
-        border: 1px solid blue;
+        border: 0px solid blue;
     }
     #dataviz_axisZoom {
         display: inline-block;
-        width:650;
-        height:500;
+        width:55%;
+        height:400;
         border: 1px solid red;
     }
     #div2 {
         vertical-align:top;
         display: inline-block;
-        width:260px;
-        height:200px;
-        border: 1px solid green;
-        font-size:0.5em;
+        width: 25%;
+        font-size:0.605em;
+        text-align: left; /* Align content to the left */
+    }
+    #items {
+        margin: 20px;
+    }
+    #item {
+        background: #d95e00;
+        border-radius: 5px;
+        padding-top: 5px;
+        padding-right: 5px;
+        padding-bottom: 5px;
+        padding-left: 5px;
+        color:white;
+        font-weight: bold;
     }
 
-    p {
-    margin: 35px;
+    #div-a {
+        vertical-align:top;
+        display: inline-block;
+        background: #ffe1a3;
+        border-radius: 12px;
+        width: 100%;
+
     }
+    #div-b {
+        vertical-align:top;
+        display: inline-block;
+        background: #f0f0f0;
+        border-radius: 12px;
+        width: 100%;
+    }
+    #item-b {
+        background: #ffc445;
+        border-radius: 5px;
+        padding-top: 5px;
+        padding-right: 5px;
+        padding-bottom: 5px;
+        padding-left: 5px;
+        color:white;
+        font-weight: bold;
+    }
+    
+
+
 
 </style>

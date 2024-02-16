@@ -25,19 +25,22 @@
     let acresBurned = '';
     let fatalities = '';
     let year = '';
+    let description = '';
+    let name = '';
     let long = '';
     let lat = '';
+    let county = '';
     let zoom = d3.zoom()
         .on('zoom', handleZoom);
 
     // Define a linear scale for the radius based on AcresBurned
     let radiusScale = d3.scaleLinear()
-        .domain(d3.extent(tempData, d => d.AcresBurned))
-        .range([3, 11]); // Adjust the range as needed for the desired circle sizes
+        .domain([0, 410203])
+        .range([4, 15]); // Adjust the range as needed for the desired circle sizes
     // Define a color scale based on AcresBurned
-    let colorScale = d3.scaleSequential(d3.interpolateHslLong)
-        .domain(d3.extent(tempData, d => d.AcresBurned))
-        .range(["#edca00", "#de1102"]);
+    let colorScale = d3.scaleLinear(d3.interpolateHslLong)
+        .domain([0, 410203])
+        .range(["#ffa826", "#de1102"]);
 
     onMount(() => {
         // Append the SVG object to the body of the page
@@ -110,16 +113,16 @@
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
             .attr("fill", (d) => colorScale(d.AcresBurned))
-            .attr("r", 5); // Use the radius scale
+            .attr("r", (d) => radiusScale(d.AcresBurned)); 
 
         // Enter new circles
         circle_markers.enter()
             .append("circle")
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("r", 5) // Use the radius scale
+            .attr("r", (d) => radiusScale(d.AcresBurned))
             .attr("fill", (d) => colorScale(d.AcresBurned))
-            .attr("opacity", 0.5)
+            .attr("opacity", 0.6)
             .on("mouseover", (event, d) => {
                 tooltipText = `Longitude: ${d.Longitude} Latitude: ${d.Latitude}`;
                 tooltipInfo = d;
@@ -128,6 +131,9 @@
                 long = d.Longitude;
                 lat = d.Latitude;
                 year = d.ArchiveYear;
+                county = d.Counties;
+                name = d.Name;
+                description = d.SearchDescription;
             })
             .on("mouseout", () => {
                 tooltipText = '';
@@ -137,11 +143,13 @@
                 long = '';
                 lat = '';
                 year= '';
+                county = '';
+                name = '';
+                description= '';
 
             });
-            console.log('here')
         // Remove old circles
-        //circle_markers.exit().remove();
+        circle_markers.exit().remove();
     });
 </script>
 
@@ -150,15 +158,22 @@
     <div id="div2">
         <div id = "div-a">
             <div id = "items" align = 'left'>
+                <span id = 'item'> Name:   </span> {name} <br />
+                <p></p>
                 <span id = 'item'> Longitude:   </span> {long} <br />
                 <p></p>
                 <span id = 'item'> Latitude:    </span> {lat} <br />
+                <p></p>
+                <span id = 'item'> County:     </span> {county} <br />
                 <p></p>
                 <span id = 'item'> Acres Burned:  </span> {acresBurned} <br />
                 <p></p>
                 <span id = 'item'> Fatalities:  </span> {fatalities} <br />
                 <p></p>
                 <span id = 'item'> Year:     </span> {year} <br />
+                <p></p>
+                <span id = 'item'> Description:     </span> {description} 
+
             </div>
         </div>
         <br />
@@ -168,6 +183,7 @@
                 <span id = 'item-b'> About the Data: </span> <br />
                 <p></p>
                 <p>The data in this visualization is a collection of California wildfires spanning from 2013 to 2019. The dataset was sourced from CalFire – California Department of Forest and Fire Protection.</p>
+                <p>You can scroll and zoom in to better see the different wildfires in California. You can also hover over a particular circle to learn more about its corresponding wildfire.</p>
             </div>
         </div>
 
@@ -210,16 +226,17 @@
         vertical-align:top;
         display: inline-block;
         background: #ffe1a3;
-        border-radius: 12px;
+        border-radius: 8px;
+        height: 400px;
         width: 100%;
-
     }
     #div-b {
         vertical-align:top;
         display: inline-block;
         background: #f0f0f0;
-        border-radius: 12px;
+        border-radius: 8px;
         width: 100%;
+        height: auto;
     }
     #item-b {
         background: #ffc445;

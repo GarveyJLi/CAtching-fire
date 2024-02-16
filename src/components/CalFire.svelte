@@ -15,6 +15,7 @@
     let gx;
     let gy;
     let svg;
+    let svg_axis;
     let marker_container;
     let circle_markers;
     let x;
@@ -49,20 +50,8 @@
             .attr("height", height)
             .append("g")
             .attr("transform", `translate(${marginLeft}, ${marginTop})`);
-
-        // Add a clipPath: everything out of this area won't be drawn.
-        const clip = svg.append("defs").append("clipPath")
-            .attr("id", "clip")
-            .append("rect")
-            .attr("width", width - marginLeft - marginRight)
-            .attr("height", height - marginTop - marginBottom)
-            .attr("x", marginLeft)
-            .attr("y", marginTop);
-
-        // Create the scatter variable: where both the circles and the brush take place
-        const scatter = svg.append('g')
-            .attr("clip-path", "url(#clip)");
-
+        
+    
         // Append the x axis
         gx = svg.append("g")
             .attr("transform", `translate(0, ${height - marginBottom})`);
@@ -91,8 +80,7 @@
             .attr('y', 15)
             .attr('text-anchor', 'middle')
             .text('');
-            
-        
+
     });
 
     function handleZoom(e) {
@@ -125,14 +113,14 @@
             .data(tempData)
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("r", 5); // Use the radius scale
+            .attr("r", 5); // Use the radius scale later
 
         // Enter new circles
         circle_markers.enter()
             .append("circle")
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("r", 5) // Use the radius scale
+            .attr("r", 5) // Use the radius scale later
             .attr("fill", 'red')
             .attr("opacity", 0.5)
             .on("mouseover", (event, d) => {

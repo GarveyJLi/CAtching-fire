@@ -26,6 +26,8 @@
     let fatalities = '';
     let long = '';
     let lat = '';
+    let zoom = d3.zoom()
+        .on('zoom', handleZoom);
 
     // Define a linear scale for the radius based on AcresBurned
     let radiusScale = d3.scaleLinear()
@@ -36,29 +38,8 @@
         .domain(d3.extent(tempData, d => d.AcresBurned))
         .range(["#edca00", "#de1102"]);
 
-    // Set the zoom and Pan features: how much you can zoom, on which part, and what to do when there is a zoom
-    const zoom = d3.zoom()
-        .scaleExtent([.05, 20])  // This control how much you can unzoom (x0.5) and zoom (x20)
-        .extent([[50, 100], [width, height]])
-        .on("zoom", updateChart);
 
-    // This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
-    function updateChart() {
-        if (!d3.event || !d3.event.transform) return; // Check if d3.event or d3.event.transform is undefined
-
-        // recover the new scale
-        const newX = d3.event.transform.rescaleX(x);
-        const newY = d3.event.transform.rescaleY(y);
-
-        // update axes with these new boundaries
-        gx.call(d3.axisBottom(newX));
-        gy.call(d3.axisLeft(newY));
-
-        // update circle position
-        circle_markers
-            .attr('cx', (d) => newX(d.Longitude))
-            .attr('cy', (d) => newY(d.Latitude));
-    }
+        
 
     onMount(() => {
         // Append the SVG object to the body of the page
@@ -114,6 +95,10 @@
         
     });
 
+    function handleZoom(e) {
+         svg.attr('transform', e.transform);   
+        }
+
     afterUpdate(() => {
         // Calculate extended domain for x-axis
         let xExtent = d3.extent(tempData, (d) => d.Longitude);
@@ -140,15 +125,15 @@
             .data(tempData)
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("r", (d) => radiusScale(d.AcresBurned)); // Use the radius scale
+            .attr("r", 5); // Use the radius scale
 
         // Enter new circles
         circle_markers.enter()
             .append("circle")
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("r", (d) => radiusScale(d.AcresBurned)) // Use the radius scale
-            .attr("fill", (d) => colorScale(d.AcresBurned))
+            .attr("r", 5) // Use the radius scale
+            .attr("fill", 'red')
             .attr("opacity", 0.5)
             .on("mouseover", (event, d) => {
                 tooltipText = `Longitude: ${d.Longitude} Latitude: ${d.Latitude}`;

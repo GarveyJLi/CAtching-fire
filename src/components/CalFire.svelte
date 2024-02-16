@@ -45,7 +45,7 @@
     // This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
     function updateChart() {
         if (!d3.event || !d3.event.transform) return; // Check if d3.event or d3.event.transform is undefined
-
+        console.log('here!');
         // recover the new scale
         const newX = d3.event.transform.rescaleX(x);
         const newY = d3.event.transform.rescaleY(y);
@@ -97,24 +97,12 @@
             .style("fill", "none")
             .style("pointer-events", "all")
             .call(zoom);
-            
-        // Append the marker container (tooltip rectangle and text)
-        marker_container = svg.append('g')
-            .attr('class', 'marker-container')
-            .attr('transform', `translate(${width - marginRight - 100}, ${marginTop})`)
-            .style('display', 'none'); // Hide initially
-
- 
-        marker_container.append('text')
-            .attr('x', 50)
-            .attr('y', 15)
-            .attr('text-anchor', 'middle')
-            .text('');
-            
-        
+             
     });
 
     afterUpdate(() => {
+        console.log('afterUpdate called');
+        console.log('tempData:', tempData);
         // Calculate extended domain for x-axis
         let xExtent = d3.extent(tempData, (d) => d.Longitude);
         let xRange = [marginLeft, width - marginRight];
@@ -135,12 +123,16 @@
         gx.call(d3.axisBottom(x));
         gy.call(d3.axisLeft(y));
 
-        // Update circles
+        // Update existing circles
         circle_markers = svg.selectAll("circle")
-            .data(tempData)
+            .data(tempData);
+
+        circle_markers
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("r", (d) => radiusScale(d.AcresBurned)); // Use the radius scale
+            .attr("r",  5) 
+            .attr("fill", 'red')
+            .attr("opacity", 0.5);
 
         // Enter new circles
         circle_markers.enter()
@@ -167,11 +159,15 @@
                 long = '';
                 lat = '';
                 marker_container.select('text').text(tooltipText);
-            });
-            
-        // Remove old circles
-        circle_markers.exit().remove();
-    });
+        });
+
+    // Remove old circles
+    circle_markers.exit().remove();
+
+    console.log('end of update');
+});
+
+    
 </script>
 
 <div id = "wrapper">
@@ -208,7 +204,6 @@
         border: 1px solid green;
         font-size:0.5em;
     }
-
     p {
     margin: 35px;
     }

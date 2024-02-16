@@ -39,7 +39,6 @@
         .domain(d3.extent(tempData, d => d.AcresBurned))
         .range(["#edca00", "#de1102"]);
 
-
     onMount(() => {
         // Append the SVG object to the body of the page
         svg = d3.select("#dataviz_axisZoom")
@@ -59,8 +58,8 @@
             .attr("y", marginTop);
 
         // Create the scatter variable: where both the circles and the brush take place
-        const scatter = svg.append('g')
-            .attr("clip-path", "url(#clip)");
+        //const scatter = svg.append('g')
+        //    .attr("clip-path", "url(#clip)");
 
         // Append the x axis
         gx = svg.append("g")
@@ -77,21 +76,7 @@
             .style("fill", "none")
             .style("pointer-events", "all")
             .call(zoom);
-            
-        // Append the marker container (tooltip rectangle and text)
-        marker_container = svg.append('g')
-            .attr('class', 'marker-container')
-            .attr('transform', `translate(${width - marginRight - 100}, ${marginTop})`)
-            .style('display', 'none'); // Hide initially
 
- 
-        marker_container.append('text')
-            .attr('x', 50)
-            .attr('y', 15)
-            .attr('text-anchor', 'middle')
-            .text('');
-            
-        
     });
 
     function handleZoom(e) {
@@ -124,6 +109,7 @@
             .data(tempData)
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
+            .attr("fill", (d) => colorScale(d.AcresBurned))
             .attr("r", 5); // Use the radius scale
 
         // Enter new circles
@@ -132,7 +118,7 @@
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
             .attr("r", 5) // Use the radius scale
-            .attr("fill", 'red')
+            .attr("fill", (d) => colorScale(d.AcresBurned))
             .attr("opacity", 0.5)
             .on("mouseover", (event, d) => {
                 tooltipText = `Longitude: ${d.Longitude} Latitude: ${d.Latitude}`;
@@ -142,7 +128,6 @@
                 long = d.Longitude;
                 lat = d.Latitude;
                 year = d.ArchiveYear;
-                marker_container.select('text').text(tooltipText);
             })
             .on("mouseout", () => {
                 tooltipText = '';
@@ -152,11 +137,11 @@
                 long = '';
                 lat = '';
                 year= '';
-                marker_container.select('text').text(tooltipText);
+
             });
-            
+            console.log('here')
         // Remove old circles
-        circle_markers.exit().remove();
+        //circle_markers.exit().remove();
     });
 </script>
 
@@ -182,7 +167,7 @@
             <div id = "items" align = 'left'>
                 <span id = 'item-b'> About the Data: </span> <br />
                 <p></p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lectus sit amet est placerat in egestas erat imperdiet. Ullamcorper eget nulla facilisi etiam dignissim diam quis. Magna eget est lorem ipsum dolor sit amet. Neque volutpat ac tincidunt.</p>
+                <p>The data in this visualization is a collection of California wildfires spanning from 2013 to 2019. The dataset was sourced from CalFire – California Department of Forest and Fire Protection.</p>
             </div>
         </div>
 

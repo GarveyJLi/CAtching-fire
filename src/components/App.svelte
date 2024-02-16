@@ -57,9 +57,6 @@
     color: var(--color-text);
   }
 
-    
-
-
   header h1 {
     font-size: 50px;
     font-weight: 600;

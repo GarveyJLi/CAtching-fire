@@ -99,7 +99,7 @@
         // Update circles
         circle_markers = svg.selectAll("circle")
             .data(tempData)
-
+            .attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor); 
 
         // Enter new circles
         circle_markers.enter()

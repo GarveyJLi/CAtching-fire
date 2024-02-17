@@ -18,12 +18,12 @@
     let svg;
     let gx;
     let gy;
-    let marker_container;
     let circle_markers;
     let x;
     let y;
     let xAxis;
     let yAxis;
+    let zoom_factor = 1;
 
     let acresBurned = '';
     let fatalities = '';
@@ -46,12 +46,6 @@
     let radiusScale = d3.scaleLinear()
         .domain([0, 410203])
         .range([4, 15]); // Adjust the range as needed for the desired circle sizes
-    // Define a color scale based on AcresBurned
-    let colorScale = d3.scaleLinear(d3.interpolateHslLong)
-        .domain([0, 410203])
-        .range(["#ffa826", "#de1102"]);
-
-
     
 
     onMount(() => {
@@ -64,10 +58,12 @@
         // Append the SVG object to the body of the page
         svg = d3.select("#dataviz_axisZoom")
             .append("svg")
+            .style("pointer-events", "all")
             .attr("width", width)
             .attr("height", height)
             .append("g")
             .attr("transform", `translate(${marginLeft}, ${marginTop})`)
+            .call(zoom)
             ;
 
 
@@ -79,29 +75,19 @@
         gy = svg.append("g")
             .attr("transform", `translate(${marginLeft}, 0)`); 
 
-        // This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
-        svg.append("rect")
-            .attr("width", width)
-            .attr("height", height)
-            .style("fill", "none")
-            .style("pointer-events", "all")
-            ;
         
-        return Object.assign(svg.call(zoom).node(), {reset});
 
         function handleZoom({transform}) {
             // Transforms chart
             svg.attr('transform', transform);
             // Dynamically changes x and y axes
             gx.call(xAxis.scale(transform.rescaleX(x)));
-            gy.call(yAxis.scale(transform.rescaleY(y)));   
+            gy.call(yAxis.scale(transform.rescaleY(y))); 
+            zoom_factor = transform.k   
+            if (event.type === 'wheel') {
+                updateCircles();
+                }
             }
-
-        function reset() {
-            svg.transition()
-            .duration(750)
-            .call(zoom.transform, d3.zoomIdentity);
-        }
 
         function filter(event) {
             event.preventDefault();
@@ -109,11 +95,56 @@
         }
     });
 
-    
-    
+    function updateCircles() {
+        // Update circles
+        circle_markers = svg.selectAll("circle")
+            .data(tempData)
+            .attr("cx", (d) => x(d.Longitude))
+            .attr("cy", (d) => y(d.Latitude))
+            .style("fill", (d) => colorScale2(d.AcresBurned))
+            .attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor); 
 
-    afterUpdate(() => {
+        // Enter new circles
+        circle_markers.enter()
+            .append("circle")
+            .attr("cx", (d) => x(d.Longitude))
+            .attr("cy", (d) => y(d.Latitude))
+            .attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor)
+            .style("fill", (d) => colorScale2(d.AcresBurned))
+            .attr("opacity", 0.6)
+            .on("mouseover", function(event, d) {
+                // Update tooltip content
+                acresBurned = d.AcresBurned;
+                fatalities = d.Fatalities;
+                long = d.Longitude;
+                lat = d.Latitude;
+                year = d.ArchiveYear;
+                county = d.Counties;
+                name = d.Name;
+                description = d.SearchDescription;
 
+                // Highlight the element
+                d3.select(this).style("fill", "blue");
+                console.log("mouse over")
+            })
+            .on("mouseout", function(event, d) {
+                acresBurned = '';
+                fatalities = '';
+                long = '';
+                lat = '';
+                year= '';
+                county = '';
+                name = '';
+                description= '';
+                d3.select(this).style("fill", colorScale2(d.AcresBurned));
+
+
+            });
+        // Remove old circles
+        circle_markers.exit().remove();
+    }
+
+    function updateAxes() {
         // Calculate extended domain for x-axis
         let xExtent = d3.extent(tempData, (d) => d.Longitude);
         let xRange = [marginLeft, width - marginRight];
@@ -125,7 +156,7 @@
         xAxis = d3.axisTop(x)
             .ticks(((width + 2) / (height + 2)) * 10)
             .tickSize(height)
-            .tickPadding(8 - height)
+            .tickPadding(8 - height);
 
         // Calculate extended domain for y-axis
         let yExtent = d3.extent(tempData, (d) => d.Latitude);
@@ -143,53 +174,12 @@
         // Update the x and y axes
         gx.call(xAxis);
         gy.call(yAxis);
+    }
+    
 
-        // Update circles
-        circle_markers = svg.selectAll("circle")
-            .data(tempData)
-            .attr("cx", (d) => x(d.Longitude))
-            .attr("cy", (d) => y(d.Latitude))
-            .style("fill", (d) => colorScale2(d.AcresBurned))
-            .attr("r", (d) => radiusScale(d.AcresBurned)); 
-
-        // Enter new circles
-        circle_markers.enter()
-            .append("circle")
-            .attr("cx", (d) => x(d.Longitude))
-            .attr("cy", (d) => y(d.Latitude))
-            .attr("r", (d) => radiusScale(d.AcresBurned))
-            .style("fill", (d) => colorScale2(d.AcresBurned))
-            .attr("opacity", 0.6)
-
-            .on("mouseover", function(event, d) {
-                // Update tooltip content
-                acresBurned = d.AcresBurned;
-                fatalities = d.Fatalities;
-                long = d.Longitude;
-                lat = d.Latitude;
-                year = d.ArchiveYear;
-                county = d.Counties;
-                name = d.Name;
-                description = d.SearchDescription;
-
-                // Highlight the element
-                d3.select(this).style("fill", "blue");
-                console.log("mouse over")
-            })
-
-            .on("mouseout", () => {
-                acresBurned = '';
-                fatalities = '';
-                long = '';
-                lat = '';
-                year= '';
-                county = '';
-                name = '';
-                description= '';
-
-            });
-        // Remove old circles
-        circle_markers.exit().remove();
+    afterUpdate(() => {
+        updateAxes();
+        updateCircles();
     });
 </script>
 

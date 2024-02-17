@@ -27,7 +27,7 @@
     <p></p>
     
   </div>
-  <div>
+  <div class="visualization">
     <CalFire {tempData} />
   </div>
 </main>
@@ -74,4 +74,5 @@
     text-align: right;
     margin-right: 30px;
   }
+  
 </style>

@@ -99,10 +99,7 @@
         // Update circles
         circle_markers = svg.selectAll("circle")
             .data(tempData)
-            .attr("cx", (d) => x(d.Longitude))
-            .attr("cy", (d) => y(d.Latitude))
-            .style("fill", (d) => colorScale2(d.AcresBurned))
-            .attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor); 
+
 
         // Enter new circles
         circle_markers.enter()
@@ -137,8 +134,6 @@
                 name = '';
                 description= '';
                 d3.select(this).style("fill", colorScale2(d.AcresBurned));
-
-
             });
         // Remove old circles
         circle_markers.exit().remove();

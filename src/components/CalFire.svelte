@@ -50,8 +50,8 @@
 
     onMount(() => {
         let zoom = d3.zoom()
-            .scaleExtent([0.5, 10])
-            .translateExtent([[-100, -100], [width + 90, height + 100]])
+            .scaleExtent([1, 10])
+            .translateExtent([[-10, -10], [width + 50, height + 50]])
             .filter(filter)
             .on('zoom', handleZoom);
     
@@ -59,11 +59,12 @@
         svg = d3.select("#dataviz_axisZoom")
             .append("svg")
             .style("pointer-events", "all")
+            .call(zoom)
             .attr("width", width)
             .attr("height", height)
             .append("g")
             .attr("transform", `translate(${marginLeft}, ${marginTop})`)
-            .call(zoom)
+            
             ;
 
 
@@ -73,16 +74,16 @@
 
         // Append the y axis
         gy = svg.append("g")
-            .attr("transform", `translate(${marginLeft}, 0)`); 
+            .attr("transform", `translate(${marginLeft}, 0)`);
 
         
 
         function handleZoom({transform}) {
+            console.log(event.type)
             // Transforms chart
             svg.attr('transform', transform);
             // Dynamically changes x and y axes
-            gx.call(xAxis.scale(transform.rescaleX(x)));
-            gy.call(yAxis.scale(transform.rescaleY(y))); 
+            updateAxes();
             zoom_factor = transform.k   
             if (event.type === 'wheel') {
                 updateCircles();
@@ -91,7 +92,7 @@
 
         function filter(event) {
             event.preventDefault();
-            return (!event.ctrlKey || event.type === 'wheel') && !event.button;
+            return (!event.ctrlKey || event.type === 'wheel' || !event.type === 'mouseover') && !event.button;
         }
     });
 
@@ -108,7 +109,7 @@
             .attr("cy", (d) => y(d.Latitude))
             .attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor)
             .style("fill", (d) => colorScale2(d.AcresBurned))
-            .attr("opacity", 0.6)
+            .attr("opacity", 0.5)
             .on("mouseover", function(event, d) {
                 // Update tooltip content
                 acresBurned = d.AcresBurned;
@@ -149,9 +150,9 @@
             .range(xRange);
 
         xAxis = d3.axisTop(x)
-            .ticks(((width + 2) / (height + 2)) * 10)
+            .ticks(10 * zoom_factor)
             .tickSize(height)
-            .tickPadding(8 - height);
+            .tickPadding((8 - height) / zoom_factor);
 
         // Calculate extended domain for y-axis
         let yExtent = d3.extent(tempData, (d) => d.Latitude);
@@ -162,9 +163,9 @@
             .range(yRange);
 
         yAxis = d3.axisRight(y)
-            .ticks(10)
+            .ticks(10 * zoom_factor)
             .tickSize(width)
-            .tickPadding(8 - width)
+            .tickPadding((8 - width) / zoom_factor)
             
         // Update the x and y axes
         gx.call(xAxis);
@@ -218,7 +219,7 @@
 <style>
 
     #wrapper {
-        border: 0px solid blue;
+        border: px solid blue;
     }
     #dataviz_axisZoom {
         display: inline-block;

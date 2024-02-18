@@ -49,10 +49,6 @@
     let lat = '';
     let county = '';
 
-
-    let zoom = d3.zoom()
-        .on('zoom', handleZoom);
-
     // Define a linear scale for the radius based on AcresBurned
     let radiusScale = d3.scaleLinear()
         .domain([0, 410203])
@@ -121,7 +117,7 @@
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
             .attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor)
-            .style("fill", (d) => colorScale2(d.AcresBurned))
+            .style("fill", (d) => colorScale(d.AcresBurned))
             .attr("opacity", 0.75)
 
             .on("mouseover", function(event, d) {

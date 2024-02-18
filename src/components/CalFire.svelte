@@ -142,7 +142,7 @@
                 county = '';
                 name = '';
                 description= '';
-                d3.select(this).style("fill", colorScale2(d.AcresBurned));
+                d3.select(this).style("fill", colorScale(d.AcresBurned));
             });
         // Remove old circles
         circle_markers.exit().remove();

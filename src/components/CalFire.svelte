@@ -30,17 +30,10 @@
         county = d.Counties;
         name = d.Name;
         description = d.SearchDescription;
-
-        // Highlight the element
-        d3.select(this).attr("fill", "blue");
     }
     
     const acreBurned_quantiles = [0, 35, 98, 422.5, 410203]
     const color_quantiles = ["#FFD94F", "#FAAE3B" , "#F58228" , "#F05714" , "#EB2B00" ]
-    let colorScale2 = d3.scaleThreshold(d3.interpolateHslLong)
-        .domain(acreBurned_quantiles)
-        .range(color_quantiles);
-    
     let acresBurned = '';
     let fatalities = '';
     let year = '';
@@ -49,18 +42,20 @@
     let long = '';
     let lat = '';
     let county = '';
+
     let zoom = d3.zoom()
         .on('zoom', handleZoom);
 
     // Define a linear scale for the radius based on AcresBurned
     let radiusScale = d3.scaleLinear()
         .domain([0, 410203])
-        .range([4, 15]); // Adjust the range as needed for the desired circle sizes
+        .range([2.5, 15]); // Adjust the range as needed for the desired circle sizes
     // Define a color scale based on AcresBurned
     let colorScale = d3.scaleLinear(d3.interpolateHslLong)
         .domain([0, 410203])
-        .range(["#ffa826", "#de1102"]);
+        .range(["#ffd6d1", "#de1102"]);
 
+    
     onMount(() => {
         // Append the SVG object to the body of the page
         svg = d3.select("#dataviz_axisZoom")
@@ -69,15 +64,6 @@
             .attr("height", height)
             .append("g")
             .attr("transform", `translate(${marginLeft}, ${marginTop})`);
-
-        // Add a clipPath: everything out of this area won't be drawn.
-        const clip = svg.append("defs").append("clipPath")
-            .attr("id", "clip")
-            .append("rect")
-            .attr("width", width - marginLeft - marginRight)
-            .attr("height", height - marginTop - marginBottom)
-            .attr("x", marginLeft)
-            .attr("y", marginTop);
 
         // Create the scatter variable: where both the circles and the brush take place
         //const scatter = svg.append('g')
@@ -131,18 +117,17 @@
             .data(tempData)
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .style("fill", (d) => colorScale2(d.AcresBurned))
-            .attr("r", (d) => radiusScale(d.AcresBurned)); 
-
+            .style("fill", (d) => colorScale(d.AcresBurned))
+            .attr("r", (d) => radiusScale(d.AcresBurned));
+            
         // Enter new circles
         circle_markers.enter()
             .append("circle")
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
             .attr("r", (d) => radiusScale(d.AcresBurned))
-            .style("fill", (d) => colorScale2(d.AcresBurned))
-            .attr("opacity", 0.6)
-
+            .style("fill", (d) => colorScale(d.AcresBurned))
+            .attr("opacity", 0.75)
             .on("mouseover", function(event, d) {
                 // Update tooltip content
                 acresBurned = d.AcresBurned;
@@ -153,10 +138,8 @@
                 county = d.Counties;
                 name = d.Name;
                 description = d.SearchDescription;
-
                 // Highlight the element
                 d3.select(this).style("fill", "blue");
-                console.log("mouse over")
             })
 
             .on("mouseout", () => {
@@ -176,15 +159,48 @@
 </script>
 
 <div id = "wrapper">
-    <div class="fire-plot" id="dataviz_axisZoom" style="overflow: auto; height: ${1000}px;"></div>
+    <div class="fire-plot" id="dataviz_axisZoom" ></div>
     <div id="div2">
+        <div id = "div-b">
+            <div id = "items" align = 'left'>
+                <span id = 'item-b'> Legend: </span> <br />
+                <p></p>
+                <div id = "legend">
+                    <span>Acres Burned</span>
+                    <svg style="display: block;"> 
+                        <defs> 
+                            <linearGradient id="GFGGradient"> 
+                                <stop offset="0%" stop-color="#ffd6d1" /> 
+                                <stop offset="100%" stop-color="#de1102" /> 
+                            </linearGradient> 
+                        </defs> 
+                        <g> 
+                            <rect width="100%" height="20" fill="url(#GFGGradient)" /> 
+                        </g> 
+                    </svg> 
+                    <span id = "legend" >
+                        <span id = "min">0</span>
+                        <span id = "max" style = "float:right">410203</span>
+                    </span>
+
+                    <svg style="display: block; height: 40px;">
+                        <g>
+                            /* 2.5, 15*/
+                            <circle cx="2.5%" cy="15" r = "2.5" fill = "#757575" />
+                            <circle cx="30%" cy="15" r = "5" fill = "#757575" />
+                            <circle cx="60%" cy="15" r = "10" fill = "#757575" />
+                            <circle cx="92.5%" cy="15" r = "15" fill = "#757575" />
+                        </g>
+                        
+                    </svg>
+                </div>
+            </div>
+        </div>
         <div id = "div-a">
             <div id = "items" align = 'left'>
                 <span id = 'item'> Name:   </span> {name} <br />
                 <p></p>
-                <span id = 'item'> Longitude:   </span> {long} <br />
-                <p></p>
-                <span id = 'item'> Latitude:    </span> {lat} <br />
+                <span id = 'item'> Coordinates:   </span> {lat}, {long} <br />
                 <p></p>
                 <span id = 'item'> County:     </span> {county} <br />
                 <p></p>
@@ -200,26 +216,30 @@
         </div>
         <br />
         <p></p>
-        <div id = "div-b">
-            <div id = "items" align = 'left'>
-                <span id = 'item-b'> About the Data: </span> <br />
-                <p></p>
-                <p>The data in this visualization is a collection of California wildfires spanning from 2013 to 2019. The dataset was sourced from CalFire – California Department of Forest and Fire Protection.</p>
-                <p>You can scroll and zoom in to better see the different wildfires in California. You can also hover over a particular circle to learn more about its corresponding wildfire.</p>
-            </div>
-        </div>
 
     </div>
 </div>
 
 <style>
 
+    svg{
+        padding:-10000px;
+        margin-bottom:-130px;
+        width: 100%;
+        height: 20px;
+        display: block;
+        margin: auto;
+    }
+    
+    #legend{
+        margin-bottom:10px;
+    }
     #wrapper {
         border: 0px solid blue;
     }
     #dataviz_axisZoom {
         display: inline-block;
-        width:55%;
+        width: 55%;
         height:400;
         border: 1px solid red;
     }
@@ -231,15 +251,12 @@
         text-align: left; /* Align content to the left */
     }
     #items {
-        margin: 20px;
+        margin: 15px;
     }
     #item {
         background: #d95e00;
         border-radius: 5px;
-        padding-top: 5px;
-        padding-right: 5px;
-        padding-bottom: 5px;
-        padding-left: 5px;
+        padding:5px;
         color:white;
         font-weight: bold;
     }
@@ -249,7 +266,7 @@
         display: inline-block;
         background: #ffe1a3;
         border-radius: 8px;
-        min-height: 400px;
+        min-height: 380px;
         height: auto;
         width: 100%;
     }
@@ -260,16 +277,15 @@
         border-radius: 8px;
         width: 100%;
         height: auto;
+        margin-bottom: 10px;
     }
     #item-b {
         background: #ffc445;
         border-radius: 5px;
-        padding-top: 5px;
-        padding-right: 5px;
-        padding-bottom: 5px;
-        padding-left: 5px;
+        padding:5px;
         color:white;
         font-weight: bold;
+
     }
     
 

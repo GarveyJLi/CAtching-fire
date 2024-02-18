@@ -10,12 +10,12 @@
     const marginRight = 80;
     const marginBottom = 40; // Increased to accommodate axis labels
     const marginLeft = 40; // Increased to accommodate axis labels
-    const extendFactor_x = 0.4; // Factor by which to extend the axes beyond the data range
-    const extendFactor_y = 0.1;
 
     
 
     let svg;
+    let gGrid;
+    let grid;
     let gx;
     let gy;
     let circle_markers;
@@ -25,21 +25,7 @@
     let yAxis;
     let zoom_factor = 1;
 
-
-
-    function handleMouseOver(event,d){
-        acresBurned = d.AcresBurned;
-        fatalities = d.Fatalities;
-        long = d.Longitude;
-        lat = d.Latitude;
-        year = d.ArchiveYear;
-        county = d.Counties;
-        name = d.Name;
-        description = d.SearchDescription;
-    }
     
-    const acreBurned_quantiles = [0, 35, 98, 422.5, 410203]
-    const color_quantiles = ["#FFD94F", "#FAAE3B" , "#F58228" , "#F05714" , "#EB2B00" ]
     let acresBurned = '';
     let fatalities = '';
     let year = '';
@@ -69,30 +55,65 @@
         // Append the SVG object to the body of the page
         svg = d3.select("#dataviz_axisZoom")
             .append("svg")
-            .style("pointer-events", "all")
-            .call(zoom)
-            .attr("width", width)
-            .attr("height", height)
-            .append("g")
-            .attr("transform", `translate(${marginLeft}, ${marginTop})`);
+            .attr("viewBox", [0, 0, width, height])
+
+            //.style("pointer-events", "all")
+            //.call(zoom)
+            //.append("g")
+            //.attr("transform", `translate(${marginLeft}, ${marginTop})`);
+
+
+        gGrid = svg.append("g");
 
         // Append the x axis
-        gx = svg.append("g")
-            .attr("transform", `translate(0, ${height - marginBottom})`);
+        gx = svg.append("g");
+            //.attr("transform", `translate(0, ${height - marginBottom})`);
 
         // Append the y axis
-        gy = svg.append("g")
-            .attr("transform", `translate(${marginLeft}, 0)`);
+        gy = svg.append("g");
+            //.attr("transform", `translate(${marginLeft}, 0)`);
 
-        
+        svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
+
+        grid = (g, x, y) => g
+            .attr("stroke", "currentColor")
+            .attr("stroke-opacity", 0.1)
+            .call(g => g
+            .selectAll(".x")
+            .data(x.ticks(12))
+            .join(
+                enter => enter.append("line").attr("class", "x").attr("y2", height),
+                update => update,
+                exit => exit.remove()
+            )
+                .attr("x1", d => 0.5 + x(d))
+                .attr("x2", d => 0.5 + x(d)))
+            .call(g => g
+            .selectAll(".y")
+            .data(y.ticks(12 * k))
+            .join(
+                enter => enter.append("line").attr("class", "y").attr("x2", width),
+                update => update,
+                exit => exit.remove()
+            )
+                .attr("y1", d => 0.5 + y(d))
+                .attr("y2", d => 0.5 + y(d)));
 
         function handleZoom({transform}) {
+            zoom_factor = transform.k   
+            const zx = transform.rescaleX(x).interpolate(d3.interpolateRound);
+            const zy = transform.rescaleY(y).interpolate(d3.interpolateRound);
+            
+            circle_markers.attr("transform", transform).attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor);
+            gx.call(xAxis, zx);
+            gy.call(yAxis, zy);
+            gGrid.call(grid, zx, zy)
+
             console.log(event.type)
             // Transforms chart
-            svg.attr('transform', transform);
+            //svg.attr('transform', transform);
             // Dynamically changes x and y axes
-            updateAxes();
-            zoom_factor = transform.k   
+            //updateAxes();
             if (event.type === 'wheel') {
                 updateCircles();
                 }
@@ -149,8 +170,7 @@
     }
 
     function updateAxes() {
-        // Calculate extended domain for x-axis
-        let xExtent = d3.extent(tempData, (d) => d.Longitude);
+        // Create extended domain for x-axis
         let xRange = [marginLeft, width - marginRight];
         x = d3.scaleLinear()
             // Manually set domain past range of x values in dataset
@@ -160,10 +180,9 @@
         xAxis = d3.axisTop(x)
             .ticks(Math.min(30, 10 * zoom_factor))
             .tickSize(height)
-            .tickPadding((8 - height) / zoom_factor);
+            .tickPadding((8 - height));
 
-        // Calculate extended domain for y-axis
-        let yExtent = d3.extent(tempData, (d) => d.Latitude);
+        // Create extended domain for y-axis
         let yRange = [height - marginBottom, marginTop];
         y = d3.scaleLinear()
             // Manually set domain past range of y values in dataset
@@ -173,7 +192,7 @@
         yAxis = d3.axisRight(y)
             .ticks(Math.min(30, 10 * zoom_factor))
             .tickSize(width)
-            .tickPadding((8 - width) / zoom_factor)
+            .tickPadding((8 - width))
             
         // Update the x and y axes
         // To get rid of axis, get rid of call()

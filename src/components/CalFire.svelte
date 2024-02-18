@@ -153,12 +153,12 @@
         let xExtent = d3.extent(tempData, (d) => d.Longitude);
         let xRange = [marginLeft, width - marginRight];
         x = d3.scaleLinear()
-            .domain([xExtent[0] - (xExtent[1] - xExtent[0]) * extendFactor_x,
-                    xExtent[1] + (xExtent[1] - xExtent[0]) * extendFactor_x])
+            // Manually set domain past range of x values in dataset
+            .domain([-128, -112])
             .range(xRange);
 
         xAxis = d3.axisTop(x)
-            .ticks(10 * zoom_factor)
+            .ticks(Math.min(30, 10 * zoom_factor))
             .tickSize(height)
             .tickPadding((8 - height) / zoom_factor);
 
@@ -166,18 +166,19 @@
         let yExtent = d3.extent(tempData, (d) => d.Latitude);
         let yRange = [height - marginBottom, marginTop];
         y = d3.scaleLinear()
-            .domain([yExtent[0] - (yExtent[1] - yExtent[0]) * extendFactor_y,
-                    yExtent[1] + (yExtent[1] - yExtent[0]) * extendFactor_y - 1])
+            // Manually set domain past range of y values in dataset
+            .domain([32, 42])
             .range(yRange);
 
         yAxis = d3.axisRight(y)
-            .ticks(10 * zoom_factor)
+            .ticks(Math.min(30, 10 * zoom_factor))
             .tickSize(width)
             .tickPadding((8 - width) / zoom_factor)
             
         // Update the x and y axes
-        gx.call(xAxis);
-        gy.call(yAxis);
+        // To get rid of axis, get rid of call()
+        gx.call(xAxis).attr("transform", `translate(0, ${height - marginBottom})`);
+        gy.call(yAxis).attr("transform", `translate(${marginLeft}, 0)`);
     }
     
 

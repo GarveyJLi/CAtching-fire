@@ -12,13 +12,19 @@
     const marginLeft = 40; // Increased to accommodate axis labels
     const extendFactor_x = 0.4; // Factor by which to extend the axes beyond the data range
     const extendFactor_y = 0.1;
+
+    
+
+    let svg;
     let gx;
     let gy;
-    let svg;
-    let marker_container;
     let circle_markers;
     let x;
     let y;
+    let xAxis;
+    let yAxis;
+    let zoom_factor = 1;
+
 
 
     function handleMouseOver(event,d){
@@ -43,6 +49,7 @@
     let lat = '';
     let county = '';
 
+
     let zoom = d3.zoom()
         .on('zoom', handleZoom);
 
@@ -57,17 +64,21 @@
 
     
     onMount(() => {
+        let zoom = d3.zoom()
+            .scaleExtent([1, 10])
+            .translateExtent([[-10, -10], [width + 50, height + 50]])
+            .filter(filter)
+            .on('zoom', handleZoom);
+    
         // Append the SVG object to the body of the page
         svg = d3.select("#dataviz_axisZoom")
             .append("svg")
+            .style("pointer-events", "all")
+            .call(zoom)
             .attr("width", width)
             .attr("height", height)
             .append("g")
             .attr("transform", `translate(${marginLeft}, ${marginTop})`);
-
-        // Create the scatter variable: where both the circles and the brush take place
-        //const scatter = svg.append('g')
-        //    .attr("clip-path", "url(#clip)");
 
         // Append the x axis
         gx = svg.append("g")
@@ -77,57 +88,42 @@
         gy = svg.append("g")
             .attr("transform", `translate(${marginLeft}, 0)`);
 
-        // This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
-        svg.append("rect")
-            .attr("width", width)
-            .attr("height", height)
-            .style("fill", "none")
-            .style("pointer-events", "all")
-            .call(zoom);
+        
 
+        function handleZoom({transform}) {
+            console.log(event.type)
+            // Transforms chart
+            svg.attr('transform', transform);
+            // Dynamically changes x and y axes
+            updateAxes();
+            zoom_factor = transform.k   
+            if (event.type === 'wheel') {
+                updateCircles();
+                }
+            }
+
+        function filter(event) {
+            event.preventDefault();
+            return (!event.ctrlKey || event.type === 'wheel' || !event.type === 'mouseover') && !event.button;
+        }
     });
 
-    function handleZoom(e) {
-         svg.attr('transform', e.transform);   
-        }
-
-    afterUpdate(() => {
-        // Calculate extended domain for x-axis
-        let xExtent = d3.extent(tempData, (d) => d.Longitude);
-        let xRange = [marginLeft, width - marginRight];
-        x = d3.scaleLinear()
-            .domain([xExtent[0] - (xExtent[1] - xExtent[0]) * extendFactor_x,
-                    xExtent[1] + (xExtent[1] - xExtent[0]) * extendFactor_x])
-            .range(xRange);
-
-        // Calculate extended domain for y-axis
-        let yExtent = d3.extent(tempData, (d) => d.Latitude);
-        let yRange = [height - marginBottom, marginTop];
-        y = d3.scaleLinear()
-            .domain([yExtent[0] - (yExtent[1] - yExtent[0]) * extendFactor_y,
-                    yExtent[1] + (yExtent[1] - yExtent[0]) * extendFactor_y - 1])
-            .range(yRange);
-
-        // Update the x and y axes
-        gx.call(d3.axisBottom(x));
-        gy.call(d3.axisLeft(y));
-
+    function updateCircles() {
         // Update circles
         circle_markers = svg.selectAll("circle")
             .data(tempData)
-            .attr("cx", (d) => x(d.Longitude))
-            .attr("cy", (d) => y(d.Latitude))
-            .style("fill", (d) => colorScale(d.AcresBurned))
-            .attr("r", (d) => radiusScale(d.AcresBurned));
-            
+            .attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor); 
+
+
         // Enter new circles
         circle_markers.enter()
             .append("circle")
             .attr("cx", (d) => x(d.Longitude))
             .attr("cy", (d) => y(d.Latitude))
-            .attr("r", (d) => radiusScale(d.AcresBurned))
-            .style("fill", (d) => colorScale(d.AcresBurned))
+            .attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor)
+            .style("fill", (d) => colorScale2(d.AcresBurned))
             .attr("opacity", 0.75)
+
             .on("mouseover", function(event, d) {
                 // Update tooltip content
                 acresBurned = d.AcresBurned;
@@ -141,8 +137,7 @@
                 // Highlight the element
                 d3.select(this).style("fill", "blue");
             })
-
-            .on("mouseout", () => {
+            .on("mouseout", function(event, d) {
                 acresBurned = '';
                 fatalities = '';
                 long = '';
@@ -151,10 +146,48 @@
                 county = '';
                 name = '';
                 description= '';
-
+                d3.select(this).style("fill", colorScale2(d.AcresBurned));
             });
         // Remove old circles
         circle_markers.exit().remove();
+    }
+
+    function updateAxes() {
+        // Calculate extended domain for x-axis
+        let xExtent = d3.extent(tempData, (d) => d.Longitude);
+        let xRange = [marginLeft, width - marginRight];
+        x = d3.scaleLinear()
+            .domain([xExtent[0] - (xExtent[1] - xExtent[0]) * extendFactor_x,
+                    xExtent[1] + (xExtent[1] - xExtent[0]) * extendFactor_x])
+            .range(xRange);
+
+        xAxis = d3.axisTop(x)
+            .ticks(10 * zoom_factor)
+            .tickSize(height)
+            .tickPadding((8 - height) / zoom_factor);
+
+        // Calculate extended domain for y-axis
+        let yExtent = d3.extent(tempData, (d) => d.Latitude);
+        let yRange = [height - marginBottom, marginTop];
+        y = d3.scaleLinear()
+            .domain([yExtent[0] - (yExtent[1] - yExtent[0]) * extendFactor_y,
+                    yExtent[1] + (yExtent[1] - yExtent[0]) * extendFactor_y - 1])
+            .range(yRange);
+
+        yAxis = d3.axisRight(y)
+            .ticks(10 * zoom_factor)
+            .tickSize(width)
+            .tickPadding((8 - width) / zoom_factor)
+            
+        // Update the x and y axes
+        gx.call(xAxis);
+        gy.call(yAxis);
+    }
+    
+
+    afterUpdate(() => {
+        updateAxes();
+        updateCircles();
     });
 </script>
 
@@ -235,7 +268,7 @@
         margin-bottom:10px;
     }
     #wrapper {
-        border: 0px solid blue;
+        border: px solid blue;
     }
     #dataviz_axisZoom {
         display: inline-block;

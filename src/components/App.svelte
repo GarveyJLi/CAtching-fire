@@ -28,6 +28,7 @@
     
   </div>
 
+
   <div>
     <CalFire {tempData} />
   </div>
@@ -95,6 +96,8 @@
     text-align: right;
     margin-right: 30px;
   }
+  
+
   #div-b {
       display: inline-block;
       background: #f0f0f0;

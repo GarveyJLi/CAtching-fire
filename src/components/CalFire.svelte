@@ -6,6 +6,7 @@
 
     const width = 650;
     const height = 550;
+    let k = height / width;
     const marginTop = 20;
     const marginRight = 80;
     const marginBottom = 40; // Increased to accommodate axis labels
@@ -113,9 +114,9 @@
             // Transforms chart
             //svg.attr('transform', transform);
             // Dynamically changes x and y axes
-            //updateAxes();
+            updateAxes();
             if (event.type === 'wheel') {
-                updateCircles();
+                //updateCircles();
                 }
             }
 
@@ -177,10 +178,14 @@
             .domain([-128, -112])
             .range(xRange);
 
-        xAxis = d3.axisTop(x)
-            .ticks(Math.min(30, 10 * zoom_factor))
+        xAxis = (g, x) => g
+            .attr("transform", `translate(0,${height - marginBottom})`)
+            .call(d3.axisTop(x)
+            .ticks(10)
             .tickSize(height)
-            .tickPadding((8 - height));
+            .tickPadding((8 - height)))
+            .call(g => g.select(".domain").attr("display", "none"));
+             
 
         // Create extended domain for y-axis
         let yRange = [height - marginBottom, marginTop];
@@ -189,15 +194,21 @@
             .domain([32, 42])
             .range(yRange);
 
-        yAxis = d3.axisRight(y)
-            .ticks(Math.min(30, 10 * zoom_factor))
+
+            
+        yAxis = (g, y) => g
+        .attr("transform", `translate(${marginLeft}, 0)`)
+        .call(d3.axisRight(y)
+            .ticks(10)
             .tickSize(width)
-            .tickPadding((8 - width))
+            .tickPadding((8 - width)))
+        .call(g => g.select(".domain").attr("display", "none"));
+        
             
         // Update the x and y axes
         // To get rid of axis, get rid of call()
-        gx.call(xAxis).attr("transform", `translate(0, ${height - marginBottom})`);
-        gy.call(yAxis).attr("transform", `translate(${marginLeft}, 0)`);
+        //gx.call(xAxis)
+        //gy.call(yAxis)
     }
     
 

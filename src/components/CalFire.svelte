@@ -6,12 +6,50 @@
 
     const width = 650;
     const height = 550;
-    let k = height / width;
+    const k = height / width;
     const marginTop = 20;
     const marginRight = 80;
     const marginBottom = 40; // Increased to accommodate axis labels
     const marginLeft = 40; // Increased to accommodate axis labels
 
+    // Create extended domain for x-axis
+    const xRange = [marginLeft, width - marginRight];
+    const x = d3.scaleLinear()
+            // Manually set domain past range of x values in dataset
+            .domain([-128, -112])
+            .range(xRange);
+
+    // Create extended domain for y-axis
+    const yRange = [height - marginBottom, marginTop];
+    const y = d3.scaleLinear()
+        // Manually set domain past range of y values in dataset
+        .domain([32, 42])
+        .range(yRange);
+
+    const xAxis = (g, x) => g
+            .attr("transform", `translate(0,${height - marginBottom})`)
+            .call(d3.axisTop(x)
+            .ticks(10)
+            .tickSize(height)
+            .tickPadding((8 - height)))
+            .call(g => g.select(".domain"));
+
+    const yAxis = (g, y) => g
+        .attr("transform", `translate(${marginLeft}, 0)`)
+        .call(d3.axisRight(y)
+            .ticks(10)
+            .tickSize(width)
+            .tickPadding((8 - width)))
+        .call(g => g.select(".domain"));
+
+    // Define a linear scale for the radius based on AcresBurned
+    const radiusScale = d3.scaleLinear()
+        .domain([0, 410203])
+        .range([2.5, 15]); // Adjust the range as needed for the desired circle sizes
+    // Define a color scale based on AcresBurned
+    const colorScale = d3.scaleLinear(d3.interpolateHslLong)
+        .domain([0, 410203])
+        .range(["#ffd6d1", "#de1102"]);
     
 
     let svg;
@@ -20,38 +58,29 @@
     let gx;
     let gy;
     let circle_markers;
-    let x;
-    let y;
-    let xAxis;
-    let yAxis;
-    let zoom_factor = 1;
+    var zoom_factor = 1;
 
     
-    let acresBurned = '';
-    let fatalities = '';
-    let year = '';
-    let description = '';
-    let name = '';
-    let long = '';
-    let lat = '';
-    let county = '';
+    var acresBurned = '';
+    var fatalities = '';
+    var year = '';
+    var description = '';
+    var name = '';
+    var long = '';
+    var lat = '';
+    var county = '';
 
-    // Define a linear scale for the radius based on AcresBurned
-    let radiusScale = d3.scaleLinear()
-        .domain([0, 410203])
-        .range([2.5, 15]); // Adjust the range as needed for the desired circle sizes
-    // Define a color scale based on AcresBurned
-    let colorScale = d3.scaleLinear(d3.interpolateHslLong)
-        .domain([0, 410203])
-        .range(["#ffd6d1", "#de1102"]);
+    
 
     
     onMount(() => {
         let zoom = d3.zoom()
             .scaleExtent([1, 10])
-            .translateExtent([[-10, -10], [width + 50, height + 50]])
+            .translateExtent([[0, 0], [width, height]])
             .filter(filter)
             .on('zoom', handleZoom);
+
+
     
         // Append the SVG object to the body of the page
         svg = d3.select("#dataviz_axisZoom")
@@ -100,21 +129,20 @@
                 .attr("y1", d => 0.5 + y(d))
                 .attr("y2", d => 0.5 + y(d)));
 
+
         function handleZoom({transform}) {
             zoom_factor = transform.k   
             const zx = transform.rescaleX(x).interpolate(d3.interpolateRound);
             const zy = transform.rescaleY(y).interpolate(d3.interpolateRound);
             
+            
             circle_markers.attr("transform", transform).attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor);
             gx.call(xAxis, zx);
             gy.call(yAxis, zy);
-            gGrid.call(grid, zx, zy)
+            //gGrid.call(grid, zx, zy)
 
-            console.log(event.type)
-            // Transforms chart
-            //svg.attr('transform', transform);
-            // Dynamically changes x and y axes
-            updateAxes();
+            
+           
             if (event.type === 'wheel') {
                 //updateCircles();
                 }
@@ -126,12 +154,14 @@
         }
     });
 
+    afterUpdate(() => {
+        updateCircles();
+    });
+
     function updateCircles() {
         // Update circles
         circle_markers = svg.selectAll("circle")
             .data(tempData)
-            .attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor); 
-
 
         // Enter new circles
         circle_markers.enter()
@@ -170,52 +200,9 @@
         circle_markers.exit().remove();
     }
 
-    function updateAxes() {
-        // Create extended domain for x-axis
-        let xRange = [marginLeft, width - marginRight];
-        x = d3.scaleLinear()
-            // Manually set domain past range of x values in dataset
-            .domain([-128, -112])
-            .range(xRange);
-
-        xAxis = (g, x) => g
-            .attr("transform", `translate(0,${height - marginBottom})`)
-            .call(d3.axisTop(x)
-            .ticks(10)
-            .tickSize(height)
-            .tickPadding((8 - height)))
-            .call(g => g.select(".domain").attr("display", "none"));
-             
-
-        // Create extended domain for y-axis
-        let yRange = [height - marginBottom, marginTop];
-        y = d3.scaleLinear()
-            // Manually set domain past range of y values in dataset
-            .domain([32, 42])
-            .range(yRange);
-
-
-            
-        yAxis = (g, y) => g
-        .attr("transform", `translate(${marginLeft}, 0)`)
-        .call(d3.axisRight(y)
-            .ticks(10)
-            .tickSize(width)
-            .tickPadding((8 - width)))
-        .call(g => g.select(".domain").attr("display", "none"));
-        
-            
-        // Update the x and y axes
-        // To get rid of axis, get rid of call()
-        //gx.call(xAxis)
-        //gy.call(yAxis)
-    }
     
 
-    afterUpdate(() => {
-        updateAxes();
-        updateCircles();
-    });
+    
 </script>
 
 <div id = "wrapper">

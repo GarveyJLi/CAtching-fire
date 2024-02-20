@@ -20,7 +20,7 @@
       <header>
         <span><h1>CA-tching Fire</h1></span>
         <div id = "question">
-          <h4> Do different areas of California experience wildifire severity differently? </h4>
+          <h4> Do different areas of California experience wildifire severity differently? (2013-2019) </h4>
         <span><h3>Penny King & Garvey Li</h3></span>
       </div>
       </header>
@@ -100,7 +100,7 @@
   }
   
   header h4{
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 250;
     color: white;
     transform: translateY(-300%);

@@ -93,7 +93,7 @@
     font-size: 15px;
     font-weight: 250;
     color: white;
-    transform: translateY(-355%);
+    transform: translateY(-365%);
     text-align: right;
     margin-right: 30px;
     margin-left: 30px;
@@ -103,7 +103,7 @@
     font-size: 12px;
     font-weight: 250;
     color: white;
-    transform: translateY(-300%);
+    transform: translateY(-275%);
     text-align: left;
     margin-left: 30px;
     margin-right: 30px;

@@ -73,25 +73,23 @@
     
 
     
-    onMount(() => {
+    onMount(async () => {
+
+        const res = await fetch('calfire.csv'); 
+        const csv = await res.text();
+        tempData = d3.csvParse(csv, d3.autoType)
+        
         let zoom = d3.zoom()
             .scaleExtent([1, 10])
             .translateExtent([[0, 0], [width, height]])
             .filter(filter)
             .on('zoom', handleZoom);
-
-
+            
     
         // Append the SVG object to the body of the page
         svg = d3.select("#dataviz_axisZoom")
             .append("svg")
-            .attr("viewBox", [0, 0, width, height])
-
-            //.style("pointer-events", "all")
-            //.call(zoom)
-            //.append("g")
-            //.attr("transform", `translate(${marginLeft}, ${marginTop})`);
-
+            .attr("viewBox", [0, 0, width, height]);
 
         gGrid = svg.append("g");
 
@@ -102,6 +100,9 @@
         // Append the y axis
         gy = svg.append("g");
             //.attr("transform", `translate(${marginLeft}, 0)`);
+
+        circle_markers = svg.selectAll("circle").data(tempData);
+
 
         svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
 
@@ -130,35 +131,29 @@
                 .attr("y2", d => 0.5 + y(d)));
 
 
+
         function handleZoom({transform}) {
             zoom_factor = transform.k   
             const zx = transform.rescaleX(x).interpolate(d3.interpolateRound);
             const zy = transform.rescaleY(y).interpolate(d3.interpolateRound);
             
-            
+
+            // Undefined here since not initialized until afterCircles() which happens during mousover and afterUpdate
+            // How to get data to load in onMount instead of afterUpdate?
+            // !!!!!!!!! Issue is here most likely
             circle_markers.attr("transform", transform).attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor);
             gx.call(xAxis, zx);
             gy.call(yAxis, zy);
-            //gGrid.call(grid, zx, zy)
-
-            
-           
-            if (event.type === 'wheel') {
-                //updateCircles();
-                }
+            // gGrid.call(grid, zx, zy)
             }
 
         function filter(event) {
             event.preventDefault();
-            return (!event.ctrlKey || event.type === 'wheel' || !event.type === 'mouseover') && !event.button;
+            return (!event.ctrlKey || event.type === 'wheel') && !event.button;
         }
     });
-
+    
     afterUpdate(() => {
-        updateCircles();
-    });
-
-    function updateCircles() {
         // Update circles
         circle_markers = svg.selectAll("circle")
             .data(tempData)
@@ -198,7 +193,9 @@
             });
         // Remove old circles
         circle_markers.exit().remove();
-    }
+    });
+
+  
 
     
 

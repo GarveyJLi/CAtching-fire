@@ -9,7 +9,6 @@
       const res = await fetch('calfire.csv'); 
       const csv = await res.text();
       tempData = d3.csvParse(csv, d3.autoType)
-      console.log(tempData);
     });
 
 

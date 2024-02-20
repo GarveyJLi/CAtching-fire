@@ -7,40 +7,61 @@
     const width = 650;
     const height = 550;
     const k = height / width;
-    const marginTop = 20;
-    const marginRight = 80;
-    const marginBottom = 40; // Increased to accommodate axis labels
-    const marginLeft = 40; // Increased to accommodate axis labels
+    const marginTop = 0;
+    const marginRight = 0;
+    const marginBottom = 0; // Increased to accommodate axis labels
+    const marginLeft = 0; // Increased to accommodate axis labels
 
     // Create extended domain for x-axis
     const xRange = [marginLeft, width - marginRight];
     const x = d3.scaleLinear()
             // Manually set domain past range of x values in dataset
-            .domain([-128, -112])
+            .domain([-127.5, -113.5])
             .range(xRange);
 
     // Create extended domain for y-axis
     const yRange = [height - marginBottom, marginTop];
     const y = d3.scaleLinear()
         // Manually set domain past range of y values in dataset
-        .domain([32, 42])
+        .domain([31.5, 42.5])
         .range(yRange);
 
     const xAxis = (g, x) => g
             .attr("transform", `translate(0,${height - marginBottom})`)
             .call(d3.axisTop(x)
-            .ticks(10)
+            .ticks(9)
             .tickSize(height)
-            .tickPadding((8 - height)))
-            .call(g => g.select(".domain"));
+            // Tick label location
+            .tickPadding((27 - height)))
+            .call(g => g.select(".domain"))
+            // Axis label
+            .append("text")
+            .attr("x", width /2)
+            .attr("y", marginBottom - 10)
+            .attr("fill", "#000")
+            .style("font", "14px times")
+            .attr("text-anchor", "middle")
+            .text("Longitude");
+            ;
 
     const yAxis = (g, y) => g
         .attr("transform", `translate(${marginLeft}, 0)`)
         .call(d3.axisRight(y)
-            .ticks(10)
-            .tickSize(width)
-            .tickPadding((8 - width)))
-        .call(g => g.select(".domain"));
+        .ticks(10)
+        .tickSize(width)
+        // Tick label location
+        .tickPadding((40 - width)))
+        .call(g => g.select(".domain"))
+        // Axis label
+        .append("text")
+        .attr("x", -width/2)
+        .attr("y", 20)
+        .style("font", "14px times")
+        .attr("transform", "rotate(-90)")
+        .attr("fill", "#000")
+        .attr("text-anchor", "middle")
+        .text("Latitude");;
+    
 
     // Define a linear scale for the radius based on AcresBurned
     const radiusScale = d3.scaleLinear()
@@ -89,21 +110,19 @@
         // Append the SVG object to the body of the page
         svg = d3.select("#dataviz_axisZoom")
             .append("svg")
+            .attr('width', width)
+            .attr('height', height)
             .attr("viewBox", [0, 0, width, height]);
 
         gGrid = svg.append("g");
 
         // Append the x axis
         gx = svg.append("g");
-            //.attr("transform", `translate(0, ${height - marginBottom})`);
 
         // Append the y axis
         gy = svg.append("g");
-            //.attr("transform", `translate(${marginLeft}, 0)`);
 
         circle_markers = svg.selectAll("circle").data(tempData);
-
-
         svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
 
         grid = (g, x, y) => g
@@ -111,7 +130,7 @@
             .attr("stroke-opacity", 0.1)
             .call(g => g
             .selectAll(".x")
-            .data(x.ticks(12))
+            .data(x.ticks(10))
             .join(
                 enter => enter.append("line").attr("class", "x").attr("y2", height),
                 update => update,
@@ -121,7 +140,7 @@
                 .attr("x2", d => 0.5 + x(d)))
             .call(g => g
             .selectAll(".y")
-            .data(y.ticks(12 * k))
+            .data(y.ticks(10 * k))
             .join(
                 enter => enter.append("line").attr("class", "y").attr("x2", width),
                 update => update,
@@ -129,7 +148,7 @@
             )
                 .attr("y1", d => 0.5 + y(d))
                 .attr("y2", d => 0.5 + y(d)));
-
+        
 
 
         function handleZoom({transform}) {

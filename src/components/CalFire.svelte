@@ -34,6 +34,7 @@
             // Tick label location
             .tickPadding((27 - height)))
             .call(g => g.select(".domain"))
+            .call(g => g.selectAll(".tick line").style("opacity", 0.1))
             // Axis label
             .append("text")
             .attr("x", width /2)
@@ -52,9 +53,10 @@
         // Tick label location
         .tickPadding((40 - width)))
         .call(g => g.select(".domain"))
+        .call(g => g.selectAll(".tick line").style("opacity", 0.1))
         // Axis label
         .append("text")
-        .attr("x", -width/2)
+        .attr("x", -width/2 + 50)
         .attr("y", 20)
         .style("font", "14px times")
         .attr("transform", "rotate(-90)")
@@ -70,7 +72,7 @@
     // Define a color scale based on AcresBurned
     const colorScale = d3.scaleLinear(d3.interpolateHslLong)
         .domain([0, 410203])
-        .range(["#ffd6d1", "#de1102"]);
+        .range(["#FFDB21", "#de1102"]);
     
 
     let svg;
@@ -79,6 +81,9 @@
     let gx;
     let gy;
     let circle_markers;
+    
+    // Decrease to make circles bigger on plot
+    const r_zoom_mult = 0.65;
     var zoom_factor = 1;
 
     
@@ -123,6 +128,7 @@
         gy = svg.append("g");
 
         circle_markers = svg.selectAll("circle").data(tempData);
+
         svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
 
         grid = (g, x, y) => g
@@ -130,7 +136,6 @@
             .attr("stroke-opacity", 0.1)
             .call(g => g
             .selectAll(".x")
-            .data(x.ticks(10))
             .join(
                 enter => enter.append("line").attr("class", "x").attr("y2", height),
                 update => update,
@@ -152,7 +157,7 @@
 
 
         function handleZoom({transform}) {
-            zoom_factor = transform.k   
+            zoom_factor = transform.k * r_zoom_mult;
             const zx = transform.rescaleX(x).interpolate(d3.interpolateRound);
             const zy = transform.rescaleY(y).interpolate(d3.interpolateRound);
             
@@ -162,7 +167,7 @@
             // Update axes 
             gx.call(xAxis, zx);
             gy.call(yAxis, zy);
-            gGrid.call(grid, zx, zy)
+            //gGrid.call(grid, zx, zy)
             }
 
         function filter(event) {
@@ -184,6 +189,7 @@
             .attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor)
             .style("fill", (d) => colorScale(d.AcresBurned))
             .attr("opacity", 0.75)
+            
 
             .on("mouseover", function(event, d) {
                 // Update tooltip content
@@ -232,7 +238,7 @@
                     <svg style="display: block;"> 
                         <defs> 
                             <linearGradient id="GFGGradient"> 
-                                <stop offset="0%" stop-color="#ffd6d1" /> 
+                                <stop offset="0%" stop-color="#FFDB21" /> 
                                 <stop offset="100%" stop-color="#de1102" /> 
                             </linearGradient> 
                         </defs> 
@@ -303,7 +309,7 @@
         display: inline-block;
         width: 55%;
         height:400;
-        border: 1px solid red;
+        border: 0px solid red;
     }
     #div2 {
         vertical-align:top;

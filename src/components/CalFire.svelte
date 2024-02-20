@@ -138,13 +138,12 @@
             const zy = transform.rescaleY(y).interpolate(d3.interpolateRound);
             
 
-            // Undefined here since not initialized until afterCircles() which happens during mousover and afterUpdate
-            // How to get data to load in onMount instead of afterUpdate?
-            // !!!!!!!!! Issue is here most likely
+            // Translate circle_markers according to transform (zoom or pan)
             circle_markers.attr("transform", transform).attr("r", (d) => radiusScale(d.AcresBurned) / zoom_factor);
+            // Update axes 
             gx.call(xAxis, zx);
             gy.call(yAxis, zy);
-            // gGrid.call(grid, zx, zy)
+            gGrid.call(grid, zx, zy)
             }
 
         function filter(event) {

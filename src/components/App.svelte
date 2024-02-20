@@ -58,7 +58,7 @@
 
 <style>
   h2 {
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 100;
     color: grey;
     padding-bottom: -10px;
